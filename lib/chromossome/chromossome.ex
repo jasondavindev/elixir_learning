@@ -1,50 +1,82 @@
 defmodule Chromossome do
   defstruct [:fitness, genes: [], generation_number: 1]
 
-  def generate_chromossome(genes_size \\ 100) do
+  @default_chromossome_genes_size 100
+  @default_mutated_genes_qty 10
+
+  def generate_chromossome do
     chromossome = %Chromossome{generation_number: 1}
 
-    genes =
-      1..genes_size
-      |> Enum.map(fn _ -> Gene.generate_gene() end)
-
+    genes = generate_genes()
     fitness = calculate_fitness(genes)
 
-    chromossome = %{chromossome | genes: genes, fitness: fitness}
-    chromossome
+    %{chromossome | genes: genes, fitness: fitness}
   end
 
-  def mutate(chromossomes, chromossomes_size) do
-    first_chosen_chromo_position =
-      :random.uniform(chromossomes_size - 1)
-      |> round()
+  defp generate_genes do
+    1..@default_chromossome_genes_size
+    |> Enum.map(fn _ -> Gene.generate_gene() end)
+  end
 
-    second_chosen_chromo_position =
-      :random.uniform(chromossomes_size - 1)
-      |> round()
+  def mutate(chromossomes) do
+    chromossomes_size = length(chromossomes)
+    first_chromo_position = choose_random_chromo_position(chromossomes_size)
+    second_chromo_position = choose_random_chromo_position(chromossomes_size)
 
-    first_chosen_chromo = Enum.at(chromossomes, first_chosen_chromo_position)
-    second_chosen_chromo = Enum.at(chromossomes, second_chosen_chromo_position)
+    first_chromo = chromossome_at(chromossomes, first_chromo_position)
+    second_chromo = chromossome_at(chromossomes, second_chromo_position)
 
-    positions =
-      1..10
-      |> Enum.map(fn _ -> :random.uniform(100 - 1) end)
-      |> Enum.map(&round(&1))
-      |> Enum.map(fn x -> get_better_chromossome(first_chosen_chromo, second_chosen_chromo, x) end)
+    best_genes = get_best_genes(first_chromo.chromo, second_chromo.chromo)
+    worse_chromo = worse_chromossome(first_chromo, second_chromo)
+    upgraded_genes = replace_genes(worse_chromo.chromo, best_genes)
+    upgraded_genes_fitness = calculate_fitness(upgraded_genes)
 
-    positions
+    upgraded_chromossome = %Chromossome{
+      fitness: upgraded_genes_fitness,
+      genes: upgraded_genes,
+      generation_number: worse_chromo.chromo.generation_number + 1
+    }
+
+    %{position: worse_chromo.position, chromo: upgraded_chromossome}
+  end
+
+  defp chromossome_at(chromossomes, position) do
+    Enum.at(chromossomes, position)
+    |> (&%{chromo: &1, position: position}).()
+  end
+
+  defp get_best_genes(first_chosen_chromo, second_chosen_chromo) do
+    1..@default_mutated_genes_qty
+    |> Enum.map(fn _ -> :random.uniform(@default_chromossome_genes_size - 1) end)
+    |> Enum.map(&round(&1))
+    |> Enum.map(&get_best_gene(first_chosen_chromo, second_chosen_chromo, &1))
+  end
+
+  defp worse_chromossome(first_chromo, second_chromo) do
+    if first_chromo.chromo.fitness > second_chromo.chromo.fitness do
+      first_chromo
+    else
+      second_chromo
+    end
+  end
+
+  defp replace_genes(chromossome, best_genes) do
+    Enum.reduce(best_genes, chromossome.genes, fn x, acc ->
+      List.replace_at(acc, x.position, x.gene)
+    end)
+  end
+
+  defp choose_random_chromo_position(size) do
+    :random.uniform(size - 1) |> round()
   end
 
   defp calculate_fitness(genes) do
-    fitness =
-      genes
-      |> Enum.map(fn x -> x.weight end)
-      |> Enum.sum()
-
-    fitness
+    genes
+    |> Enum.map(& &1.weight)
+    |> Enum.sum()
   end
 
-  def get_better_chromossome(first_chromo, second_chromo, position) do
+  def get_best_gene(first_chromo, second_chromo, position) do
     first_chromo_gene = first_chromo.genes |> Enum.at(position)
     second_chromo_gene = second_chromo.genes |> Enum.at(position)
 
