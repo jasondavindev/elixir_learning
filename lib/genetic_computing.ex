@@ -1,18 +1,12 @@
 defmodule GeneticComputing do
-  @moduledoc """
-  Documentation for `GeneticComputing`.
-  """
+  alias Population
+  def run do
+    pop = Population.generate_population(50)
 
-  @doc """
-  Hello world.
+    IO.puts("Best initial fitness #{Population.best_chromossome(pop).fitness}")
 
-  ## Examples
+    pop = Population.evolute(pop, 100_000)
 
-      iex> GeneticComputing.hello()
-      :world
-
-  """
-  def hello do
-    :world
+    IO.puts("Best fitness after mutations #{Population.best_chromossome(pop).fitness}")
   end
 end
