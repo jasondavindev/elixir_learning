@@ -18,6 +18,12 @@ defmodule Chromossome do
     |> Enum.map(fn _ -> Gene.generate_gene() end)
   end
 
+  def chunk(chromossomes, chunks) do
+    Enum.chunk_every(chromossomes, chunks)
+  end
+
+  def mutate(chromossomes) when length(chromossomes) == 0, do: []
+
   def mutate(chromossomes) do
     chromossomes_size = length(chromossomes)
     first_chromo_position = choose_random_chromo_position(chromossomes_size)

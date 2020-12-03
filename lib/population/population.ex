@@ -14,12 +14,25 @@ defmodule Population do
     |> Enum.at(0)
   end
 
-  def evolute(population, mutations) do
+  def evolute_parallel(population, mutations) do
+    chunks = Chromossome.chunk(population.chromossomes, 10)
+    now = DateTime.utc_now()
+
     chromossomes =
-      1..mutations
-      |> Enum.reduce(population.chromossomes, &evolute_and_replace_chromo/2)
+      chunks
+      |> Enum.map(fn c -> evolute(c, div(mutations, 10)) end)
+      |> Enum.flat_map(& &1)
+
+    mutation_duration_time = DateTime.diff(DateTime.utc_now(), now, :millisecond)
+
+    IO.puts("Mutation duration time: #{mutation_duration_time}")
 
     %Population{population | chromossomes: chromossomes}
+  end
+
+  def evolute(chromossomes, mutations) do
+    1..mutations
+    |> Enum.reduce(chromossomes, &evolute_and_replace_chromo/2)
   end
 
   defp generate_chromossomes(size) do
