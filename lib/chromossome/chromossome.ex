@@ -53,7 +53,7 @@ defmodule Chromossome do
 
   defp get_best_genes(first_chosen_chromo, second_chosen_chromo) do
     1..@default_mutated_genes_qty
-    |> Enum.map(fn _ -> :random.uniform(@default_chromossome_genes_size - 1) end)
+    |> Enum.map(fn _ -> :rand.uniform(@default_chromossome_genes_size - 1) end)
     |> Enum.map(&round(&1))
     |> Enum.map(&get_best_gene(first_chosen_chromo, second_chosen_chromo, &1))
   end
@@ -73,7 +73,7 @@ defmodule Chromossome do
   end
 
   defp choose_random_chromo_position(size) do
-    :random.uniform(size - 1) |> round()
+    :rand.uniform(size - 1) |> round()
   end
 
   defp calculate_fitness(genes) do

@@ -3,8 +3,8 @@ defmodule Gene do
 
   def generate_gene do
     %Gene{
-      id: round(:random.uniform() * 100_000),
-      weight: :random.uniform() * 200
+      id: round(:rand.uniform() * 100_000),
+      weight: :rand.uniform() * 200
     }
   end
 end
